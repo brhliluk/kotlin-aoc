@@ -11,3 +11,14 @@ fun main() {
     println(part1(input))
     println(part2(input))
 }
+
+fun <T> List<T>.chunkBy(predicate: (T) -> Boolean): Sequence<List<T>> = sequence {
+    val currentGroup = mutableListOf<T>()
+    for (element in this@chunkBy) {
+        if (predicate(element)) {
+            yield(currentGroup.toList())
+            currentGroup.clear()
+        } else currentGroup += element
+    }
+    yield(currentGroup)
+}
