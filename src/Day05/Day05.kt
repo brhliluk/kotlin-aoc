@@ -1,33 +1,40 @@
 fun main() {
     val matcher = Regex("move (\\d.*) from (\\d) to (\\d)")
-    //todo 2 cipher numbers
-    val _dock = Array(9) { Array<Char?>(8) { null } }
 
-    fun part1(input: List<String>) : CharArray {
-        // Parse input
-        for (i in 0..7) {
-            for (j in 1..34 step 4) {
-                with (input[i][j]) { if (this.isLetter()) _dock[j/4][7-i] = this }
+    fun parseInput(input: List<String>, inputLinesLen: Int = 7, step: Int = 4, crateTowers: Int = 9): List<MutableList<Char>> {
+        val dock = Array(crateTowers) { Array<Char?>(inputLinesLen + 1) { null } }
+        for (i in 0..inputLinesLen) {
+            for (j in 1 until inputLinesLen * step + crateTowers step step) {
+                with(input[i][j]) { if (this.isLetter()) dock[j / step][inputLinesLen - i] = this }
             }
         }
-        val dock = _dock.map { it.filterNotNull().toMutableList() }
+        return dock.map { it.filterNotNull().toMutableList() }
+    }
+
+    fun part1(input: List<String>): CharArray {
+        val dock = parseInput(input)
         input.takeLast(input.size - 10).forEach {
-            val match = matcher.matchEntire(it)!!
-            val (count, from, to) = match.destructured
-            repeat (count.toInt()) {
-                dock[to.toInt()-1].add(dock[from.toInt()-1].removeLast())
+            val (count, from, to) = matcher.matchEntire(it)!!.destructured
+            repeat(count.toInt()) {
+                dock[to.toInt() - 1].add(dock[from.toInt() - 1].removeLast())
             }
         }
         return dock.map { it.last() }.toCharArray()
     }
 
-    fun part2(input: List<String>) = input.map {
-        val oponentMove = OponentMove.byLetter(it[0])!!
-        val myMove = FightResult.byLetter(it[2])!!.getRequiredMove(oponentMove)
-        myMove.getFightResult(oponentMove) + myMove.value
-    }.reduce { acc, result -> acc + result }
+    fun part2(input: List<String>): CharArray {
+        val dock = parseInput(input)
+        input.takeLast(input.size - 10).forEach {
+            val (count, from, to) = matcher.matchEntire(it)!!.destructured
+            dock[to.toInt() - 1] += dock[from.toInt() - 1].takeLast(count.toInt())
+            repeat(count.toInt()) {
+                dock[from.toInt() - 1].removeLast()
+            }
+        }
+        return dock.mapNotNull { it.lastOrNull() }.toCharArray()
+    }
 
     val input = readInput("Day05")
     println(part1(input))
-//    println(part2(input))
+    println(part2(input))
 }
