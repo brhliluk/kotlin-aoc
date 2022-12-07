@@ -34,9 +34,7 @@ fun main() {
     fun part1(input: List<String>): Int {
         val root = parseFs(input)
         return root.folders.map { folder ->
-            folder.getSmallerThan(setOf())
-                .map { it.size }
-                .sumOf { it }
+            folder.getSmallerThan(setOf()).map { it.size }.sumOf { it }
         }.sumOf { it }
     }
 
@@ -44,11 +42,8 @@ fun main() {
         val root = parseFs(input)
         val needsToBeFreed = REQUIRED_SPACE - (TOTAL_SPACE - root.size)
         return root.folders.map { folder ->
-            val largeFolders = folder.getLargerThan(setOf(), needsToBeFreed)
-            if (largeFolders.isNotEmpty())
-                largeFolders.map { it.size }.minOf { it }
-            else
-                Int.MAX_VALUE
+            val largeFolders = folder.getLargerThan(setOf(), needsToBeFreed).ifEmpty { return@map Int.MAX_VALUE }
+            largeFolders.map { it.size }.minOf { it }
         }.minOf { it }
     }
 
