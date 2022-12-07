@@ -1,4 +1,7 @@
 fun main() {
+    val TOTAL_SPACE = 70000000
+    val REQUIRED_SPACE = 30000000
+
     fun parseFs(input: List<String>): Folder {
         val root = Folder("/", null)
         var currentFolder = root
@@ -37,9 +40,21 @@ fun main() {
         }.sumOf { it }
     }
 
+    fun part2(input: List<String>): Int {
+        val root = parseFs(input)
+        val needsToBeFreed = REQUIRED_SPACE - (TOTAL_SPACE - root.size)
+        return root.folders.map { folder ->
+            val largeFolders = folder.getLargerThan(setOf(), needsToBeFreed)
+            if (largeFolders.isNotEmpty())
+                largeFolders.map { it.size }.minOf { it }
+            else
+                Int.MAX_VALUE
+        }.minOf { it }
+    }
+
     val input = readInput("Day07")
     println(part1(input))
-//    println(part2(input))
+    println(part2(input))
 }
 
 class Folder(override val name: String, val parent: Folder?, val contents: MutableList<FS> = mutableListOf()) : FS {
@@ -49,10 +64,20 @@ class Folder(override val name: String, val parent: Folder?, val contents: Mutab
     fun getSmallerThan(smallerFolders: Set<Folder>, maxSize: Int = 100000): Set<Folder> {
         val smallFolders = mutableSetOf(smallerFolders)
         folders.forEach {
-            smallFolders.add(it.getSmallerThan(setOf()))
+            smallFolders.add(it.getSmallerThan(setOf(), maxSize))
         }
         val result = smallerFolders union smallFolders.flatten().toSet()
         return if (size < maxSize) result + this@Folder else result
+    }
+
+    fun getLargerThan(largerFolders: Set<Folder>, minSize: Int): Set<Folder> {
+        if (size < minSize) return largerFolders
+        val largeFolders = mutableSetOf(largerFolders)
+        folders.forEach {
+            largeFolders.add(it.getLargerThan(setOf(), minSize))
+        }
+        val result = largerFolders union largeFolders.flatten().toSet()
+        return result + this@Folder
     }
 }
 
