@@ -3,7 +3,6 @@ fun main() {
         val root = Folder("/", null)
         var currentFolder = root
         input.forEach { line ->
-            if (line == "$ cd /") return@forEach
             if (line.startsWith("$")) {
                 val command = line.trimStart('$').trim().split(" ")
                 when (command.first()) {
@@ -48,15 +47,12 @@ class Folder(override val name: String, val parent: Folder?, val contents: Mutab
     val folders get() = contents.filterIsInstance<Folder>()
 
     fun getSmallerThan(smallerFolders: Set<Folder>, maxSize: Int = 100000): Set<Folder> {
-        return if (size > maxSize) {
-            val smallFolders = mutableSetOf(smallerFolders)
-            folders.forEach {
-                smallFolders.add(it.getSmallerThan(smallerFolders))
-            }
-            smallerFolders + smallFolders.flatten()
-        } else {
-            smallerFolders + this@Folder
+        val smallFolders = mutableSetOf(smallerFolders)
+        folders.forEach {
+            smallFolders.add(it.getSmallerThan(setOf()))
         }
+        val result = smallerFolders union smallFolders.flatten().toSet()
+        return if (size < maxSize) result + this@Folder else result
     }
 }
 
